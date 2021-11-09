@@ -1,4 +1,4 @@
-from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 import time
 from selenium.webdriver.common.by import By
@@ -8,7 +8,8 @@ from selenium.common.exceptions import WebDriverException
 MAX_WAIT = 10
 SLEEP_TIME = 0.5
 
-class NewVisitorTest(LiveServerTestCase):
+
+class NewVisitorTest(StaticLiveServerTestCase):
 
     def setUp(self) -> None:
         self.browser = webdriver.Firefox()
@@ -16,6 +17,29 @@ class NewVisitorTest(LiveServerTestCase):
 
     def tearDown(self) -> None:
         self.browser.quit()
+
+    def test_layout_and_styling(self):
+        # Edith open the start-page
+        self.browser.get(self.live_server_url)
+        self.browser.set_window_size(1024, 768)
+        # She sees that the input-box is centred
+        inputbox = self.browser.find_element(By.ID, 'id_new_item')
+        self.assertAlmostEqual(
+            inputbox.location['x'] + inputbox.size['width'] / 2,
+            512,
+            delta=10
+        )
+        # If see adds an entry, she sees that her to-do table is also centred
+        inputbox.send_keys('Buy some feathers')
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table('1: Buy some feathers')
+        inputbox = self.browser.find_element(By.ID, 'id_new_item')
+        self.assertAlmostEqual(
+            inputbox.location['x'] + inputbox.size['width'] / 2,
+            512,
+            delta=10
+        )
+
 
     def wait_for_row_in_list_table(self, row_text):
         start_time = time.time()
@@ -35,12 +59,12 @@ class NewVisitorTest(LiveServerTestCase):
         # Edith heard of a new app and navigates to its page
         self.browser.get(self.live_server_url)
 
-        #There she sees the page title and h1-header both contain 'To-Do'
+        # There she sees the page title and h1-header both contain 'To-Do'
         self.assertIn('To-Do', self.browser.title)
         header = self.browser.find_element(By.TAG_NAME, 'h1')
         self.assertIn('Start', header.text)
 
-        #Then she sees the input form with a placeholder "Enter a to-do item here..."
+        # Then she sees the input form with a placeholder "Enter a to-do item here..."
         inputbox = self.browser.find_element(By.ID, 'id_new_item')
         self.assertEqual('Enter a to-do item here...', inputbox.get_attribute('placeholder'))
 
@@ -59,8 +83,6 @@ class NewVisitorTest(LiveServerTestCase):
         # After upd the page should show both lines
         self.wait_for_row_in_list_table('1: Buy some feathers')
         self.wait_for_row_in_list_table('2: Make a fly')
-
-        self.fail('Finish the functional test!!!')
 
     def test_multiple_users_can_start_lists_at_different_urls(self):
 
