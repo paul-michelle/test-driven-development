@@ -1,9 +1,10 @@
 .env
-
+commandlines.txt
+dev-requirements.txt
 db.sqlite3
 geckodriver.log
 __pycache__
 *.pyc
 .idea
-tesing-goat-virtenv
+testing-goat-virtenv/
 /static/
