@@ -1,0 +1,17 @@
+# sudo vim /etc/systemd/system/gunicorn-$SITENAME.service
+
+[Unit]
+Description=Gunicorn server for $SITENAME
+
+[Service]
+Restart=on-failure
+User=ubuntu # NB! The deafault name for AWS EC2 on Ubuntu
+WorkingDirectory=/home/ubuntu/sites/$SITENAME/source
+ExecStart=/home/ubuntu/sites/$SITENAME/virtualenv/bin/gunicorn --bind unix:/tmp/$SITENAME.socket superlistsproject*.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+
+
+#_________
+# *name of the settings folder of the project
