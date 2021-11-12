@@ -1,6 +1,7 @@
 import os
 import dotenv
-from fabric.contrib.files import exists, sed
+from django.core.management import utils
+from fabric.contrib.files import exists, sed, append
 from fabric.api import env, local, run
 
 dotenv.load_dotenv()
@@ -8,7 +9,10 @@ dotenv.load_dotenv()
 REPO_LINK_VIA_SSH = os.getenv('REPO_LINK')
 BRANCH = os.getenv('BRANCH')
 DIR_WITH_SETTINGS_NAME = 'superlistsproject'
+SECRET_KEY_LENGTH = 66
+
 env.key_filename = os.getenv('KEY_PATH')
+
 
 def deploy() -> None:
     site_folder = f'/home/{env.user}/sites/{env.host}'
@@ -40,6 +44,14 @@ def _update_settings(source_folder: str, site_name: str) -> None:
     settings_path = f'{source_folder}/{DIR_WITH_SETTINGS_NAME}/settings.py'
     sed(settings_path, 'DEBUG = True', 'DEBUG = False')
     sed(settings_path, 'ALLOWED_HOSTS =.+$', f'ALLOWED_HOSTS = ["{site_name}", "www.{site_name}"]')
+
+    # secret_key_file = f'{source_folder}/{DIR_WITH_SETTINGS_NAME}/secret_key.py'
+    # if not exists(secret_key_file):
+        # chars = string.printable
+        # key = ''.join(random.SystemRandom().choice(chars) for _ in range(SECRET_KEY_LENGTH))
+    #     key = utils.get_random_secret_key()
+    #     append(secret_key_file, f'SECRET_KEY = "{key}"')
+    # append(settings_path, '\nfrom .secret_key_file import SECRET_KEY')
 
 
 def _update_virtualenv(source_folder: str) -> None:

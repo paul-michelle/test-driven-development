@@ -20,7 +20,31 @@ Furthermore, if after:
 $ sudo systemctl enable gunicorn-$SITENAME <br>
 $ sudo systemctl start gunicorn-$SITENAME <br>
 
-the response if 502 BAD GATEWAY, try:
-> $ sudo systemctl reload nginx
+If the response is `502 BAD GATEWAY`, try:
+> $ sudo systemctl reload nginx <br>
+> $ sudo systemctl restart (the service here)
 
-The pattern of a working tree on AWS instance is available in nginx.template.conf. 
+The pattern of a working tree on AWS instance is available in nginx.template.conf. <br>
+
+#### To auto-amend patterns with stream editor use:
+For nginx:
+> $ sed "s/SITENAME/app.paul-michelle.art/g" /home/ubuntu/sites/app.paul-michelle.art/source/deploy_tools/nginx.template.conf
+> | sudo tee /etc/nginx/sites-available/app.paul-michelle.art
+
+Then to create a link in enabled-sites:
+> $ sudo ln -s /etc/nginx/sites-available/app.paul-michelle.art /etc/nginx/sites-enabled/app.paul-michelle.art
+
+For gunicorn system settings:
+> $ sed "s/SITENAME/app.paul-michelle.art/g" /home/ubuntu/sites/app.paul-michelle.art/source/deploy_tools/gunicorn-systemd.template.service 
+> | sudo tee /etc/systemd/system/gunicorn-app.paul-michelle.art.service
+
+#### Set of commands to launch gunicorn:
+
+> $ sudo systemctl daemon-reload <br>
+> $ sudo systemctl reload nginx <br>
+> $ sudo systemctl enable sudo gunicorn-app.paul-michelle.art 
+> (put the exact service name from above)<br>
+> $ sudo systemctl start gunicorn-app.paul-michelle.art <br>
+
+Again, if the response is `502 BAD GATEWAY`, restart both services:
+> $ sudo systemctl restart (the service here)
