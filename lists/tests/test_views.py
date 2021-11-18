@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .models import Item, List
+from lists.models import Item, List
 
 
 class HomePageTest(TestCase):
@@ -25,35 +25,17 @@ class NewListTest(TestCase):
         new_list = List.objects.first()
         self.assertRedirects(response, f'/lists/{new_list.id}/')
 
+    def test_validation_error_are_sent_back_to_homepage(self):
+        response = self.client.post('/lists/new', data={'item_text': ''})
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'lists/home.html')
+        error_message = "Please fill in the form. It can't be empty"
+        self.assertContains(response, error_message)
 
-class ListAndItemModelsTest(TestCase):
-
-    def test_creating_and_retrieving_items(self):
-        list_ = List()
-        list_.save()
-
-        first_item = Item()
-        first_item.text = 'The first list item'
-        first_item.list = list_
-        first_item.save()
-
-        second_item = Item()
-        second_item.text = 'The second list item'
-        second_item.list = list_
-        second_item.save()
-
-        saved_list = List.objects.first()
-        self.assertEqual(saved_list, list_)
-
-        saved_items = Item.objects.all()
-        self.assertEqual(saved_items.count(), 2)
-
-        first_saved_item = saved_items[0]
-        second_saved_item = saved_items[1]
-        self.assertEqual('The first list item', first_saved_item.text)
-        self.assertEqual('The second list item', second_saved_item.text)
-        self.assertEqual(first_saved_item.list, list_)
-        self.assertEqual(second_saved_item.list, list_)
+    def test_invalid_items_are_not_saved_to_db(self):
+        self.client.post('/lists/new', data={'item_text': ''})
+        result_of_searching_invalid_item = Item.objects.filter(text='')
+        self.assertFalse(result_of_searching_invalid_item)
 
 
 class ListViewTest(TestCase):
