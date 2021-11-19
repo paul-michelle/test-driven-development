@@ -1,8 +1,7 @@
 from django.shortcuts import render, redirect
-from django.core.exceptions import ValidationError
-from django.utils.html import mark_safe
 from lists.models import Item, List
 from lists.forms import ItemForm
+
 
 def home_page(request):
     form = ItemForm()
@@ -10,27 +9,20 @@ def home_page(request):
 
 
 def new_list(request):
-    list_ = List.objects.create()
-    try:
-        item = Item(text=request.POST['item_text'], list=list_)
-        item.full_clean()
-        item.save()
-    except ValidationError:
-        list_.delete()
-        error_message = mark_safe("Please fill in the form. It can't be empty")
-        return render(request, 'lists/home.html', {'error': error_message})
-    return redirect(list_)
+    form = ItemForm(data=request.POST)
+    if form.is_valid():
+        list_ = List.objects.create()
+        Item.objects.create(text=request.POST['text'], list=list_)
+        return redirect(list_)
+    return render(request, 'lists/home.html', {'form': form})
 
 
 def view_list(request, list_id):
     list_ = List.objects.get(id=list_id)
-    error_message = None
+    form = ItemForm()
     if request.method == "POST":
-        try:
-            item = Item(text=request.POST['item_text'], list=list_)
-            item.full_clean()
-            item.save()
+        form = ItemForm(data=request.POST)
+        if form.is_valid():
+            Item.objects.create(text=request.POST['text'], list=list_)
             return redirect(list_)
-        except ValidationError:
-            error_message = mark_safe("Please fill in the form. It can't be empty")
-    return render(request, 'lists/list.html', {'list': list_, 'error': error_message})
+    return render(request, 'lists/list.html', {'list': list_, 'form': form})

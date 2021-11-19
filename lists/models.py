@@ -6,7 +6,7 @@ class List(models.Model):
     objects = models.Manager()
 
     def get_absolute_url(self):
-        return reverse('view_list', args=[self.id])
+        return reverse('view_list', args=[self.pk])
 
 
 class Item(models.Model):

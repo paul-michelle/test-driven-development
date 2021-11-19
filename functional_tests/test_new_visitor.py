@@ -15,7 +15,7 @@ class NewVisitorTest(FunctionalTest):
         self.assertIn('Start', header.text)
 
         # Then she sees the input form with a placeholder "Enter a to-do item here..."
-        inputbox = self.browser.find_element(By.ID, 'id_new_item')
+        inputbox = self.get_item_input_box()
         self.assertEqual('Enter a to-do item here...', inputbox.get_attribute('placeholder'))
 
         # She enters "Buy some feathers" and hits the "enter" button
@@ -26,7 +26,7 @@ class NewVisitorTest(FunctionalTest):
         self.wait_for_row_in_list_table('1: Buy some feathers')
 
         # #Edith enters another line: "Make a fly"
-        inputbox = self.browser.find_element(By.ID, 'id_new_item')
+        inputbox = self.get_item_input_box()
         inputbox.send_keys('Make a fly')
         inputbox.send_keys(Keys.ENTER)
 
