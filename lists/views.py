@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
 from django.core.exceptions import ValidationError
 from django.utils.html import mark_safe
-from .models import Item, List
-
+from lists.models import Item, List
+from lists.forms import ItemForm
 
 def home_page(request):
-    return render(request, 'lists/home.html')
+    form = ItemForm()
+    return render(request, 'lists/home.html', {'form': form})
 
 
 def new_list(request):

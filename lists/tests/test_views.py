@@ -1,6 +1,7 @@
 from django.test import TestCase
 from lists.models import Item, List
-
+from lists.forms import ItemForm
+from pprint import pprint
 
 class HomePageTest(TestCase):
 
@@ -11,6 +12,11 @@ class HomePageTest(TestCase):
     def test_saves_items_only_if_necessary(self):
         self.client.get('/')
         self.assertEqual(Item.objects.count(), 0)
+
+    def test_homepage_uses_newly_introduced_item_form(self):
+        response = self.client.get('/')
+        pprint(response.__dict__)
+        self.assertIsInstance(response.context['form'], ItemForm)
 
 
 class NewListTest(TestCase):
