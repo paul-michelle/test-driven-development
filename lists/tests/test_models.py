@@ -44,5 +44,3 @@ class ListAndItemModelsTest(TestCase):
         url_from_model_method = list_.get_absolute_url()
         hard_coded_url = f'/lists/{list_.id}/'
         self.assertEqual(url_from_model_method, hard_coded_url)
-
-
