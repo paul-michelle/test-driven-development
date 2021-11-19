@@ -16,3 +16,8 @@ class ItemForm(forms.ModelForm):
         error_messages = {
             'text': {'required': EMPTY_ITEM_MESSAGE}
         }
+
+    def save_to_this_list(self, list_):
+        self.instance.list = list_
+        return super().save()
+
