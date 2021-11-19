@@ -31,4 +31,3 @@ class ItemValidationTest(FunctionalTest):
         self.wait_for_row_in_list_table('1: Buy milk')
         self.wait_for_row_in_list_table('2: Make tee')
 
-        self.fail('We have reached the last line of the non-empty-list test')

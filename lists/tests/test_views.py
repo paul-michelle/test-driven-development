@@ -45,6 +45,16 @@ class ListViewTest(TestCase):
         response = self.client.get(f'/lists/{list_.id}/')
         self.assertTemplateUsed(response, 'lists/list.html')
 
+    def test_passes_correct_list_to_template(self):
+        correct_list = List.objects.create()
+        another_list = List.objects.create()
+
+        response = self.client.get(f'/lists/{correct_list.id}/')
+        self.assertEqual(response.context['list'], correct_list)
+
+        response = self.client.get(f'/lists/{another_list.id}/')
+        self.assertEqual(response.context['list'], another_list)
+
     def test_displays_only_items_for_that_list(self):
         correct_list = List.objects.create()
         Item.objects.create(text='item_1', list=correct_list)
@@ -61,41 +71,37 @@ class ListViewTest(TestCase):
         self.assertNotContains(response, 'item_1_another_list')
         self.assertNotContains(response, 'item_2_another_list')
 
-    def test_passes_correct_list_to_template(self):
-        correct_list = List.objects.create()
-        another_list = List.objects.create()
-
-        response = self.client.get(f'/lists/{correct_list.id}/')
-        self.assertEqual(response.context['list'], correct_list)
-
-        response = self.client.get(f'/lists/{another_list.id}/')
-        self.assertEqual(response.context['list'], another_list)
-
-
-class NewItemTest(TestCase):
-
     def test_can_save_POST_request_to_existing_list(self):
         correct_list = List.objects.create()
         another_list = List.objects.create()
         # trying to add an item to list one
-        self.client.post(f'/lists/{correct_list.id}/add_item',
-                         data={'item_text': 'Adding a new item to a correct list'})
+        self.client.post(f'/lists/{correct_list.id}/',
+                         data={'item_text': 'Adding a new item to a correct existing list'})
         self.assertEqual(Item.objects.count(), 1)
         new_item = Item.objects.first()
-        self.assertEqual(new_item.text, 'Adding a new item to a correct list')
+        self.assertEqual(new_item.text, 'Adding a new item to a correct existing list')
         self.assertEqual(new_item.list, correct_list)
         # trying to add an item to list two
-        self.client.post(f'/lists/{another_list.id}/add_item',
-                         data={'item_text': 'Why not add an item to another list?'})
-        self.assertEqual(Item.objects.count(), 2)
-        new_item = Item.objects.get(pk=2)
-        self.assertEqual(new_item.text, 'Why not add an item to another list?')
-        self.assertEqual(new_item.list, another_list)
+        # self.client.post(f'/lists/{another_list.id}/add_item',
+        #                  data={'item_text': 'Why not add an item to another list?'})
+        # self.assertEqual(Item.objects.count(), 2)
+        # new_item = Item.objects.get(pk=2)
+        # self.assertEqual(new_item.text, 'Why not add an item to another list?')
+        # self.assertEqual(new_item.list, another_list)
 
-    def test_redirects_to_list_view(self):
+    def test_redirects_after_POST_to_list_view(self):
         correct_list = List.objects.create()
         another_list = List.objects.create()
 
-        response = self.client.post(f'/lists/{correct_list.id}/add_item',
-                                    data={'item_text': 'Adding a new item to a correct list'})
+        response = self.client.post(f'/lists/{correct_list.id}/',
+                                    data={'item_text': 'Adding a new item to a correct existing list'})
         self.assertRedirects(response, f'/lists/{correct_list.id}/')
+
+    def test_validation_errors_are_send_back_to_list_page(self):
+        list_ = List.objects.create()
+        response = self.client.post(f'/lists/{list_.id}/', data={'item_text': ''})
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'lists/list.html')
+        # cp from above, where we checked on emptiness when creating a brand new list
+        error_message = "Please fill in the form. It can't be empty"
+        self.assertContains(response, error_message)
