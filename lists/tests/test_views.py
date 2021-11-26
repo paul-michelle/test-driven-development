@@ -1,9 +1,8 @@
-from pprint import pprint
-
+from unittest import skip
 from django.test import TestCase
 from lists.models import Item, List
-from lists.forms import ItemForm
-from lists.forms import EMPTY_ITEM_MESSAGE
+from lists.forms import (EMPTY_ITEM_MESSAGE, DUPLICATE_ITEM_MESSAGE,
+                         ExistingListItemForm, ItemForm)
 from django.utils.html import escape
 
 
@@ -119,17 +118,29 @@ class ListViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'lists/list.html')
 
-    def test_when_invalid_input_formed_is_passed_to_template(self):
+    def test_when_invalid_input_form_is_passed_to_template(self):
         response = self.post_invalid_input()
-        self.assertIsInstance(response.context['form'], ItemForm)
+        self.assertIsInstance(response.context['form'], ExistingListItemForm)
 
     def test_when_invalid_input_error_is_shown_on_page(self):
         response = self.post_invalid_input()
         error_message = escape(EMPTY_ITEM_MESSAGE)
         self.assertContains(response, error_message)
 
+    def test_when_duplicates_error_is_shown_on_page(self):
+        existing_list = List.objects.create()
+        existing_item = Item.objects.create(list=existing_list,
+                                            text='Some weird text!!!')
+        response = self.client.post(path=f'/lists/{existing_list.id}/',
+                                    data={"text": "Some weird text!!!"})
+        error_message = escape(DUPLICATE_ITEM_MESSAGE)
+
+        self.assertContains(response, error_message)
+        self.assertTemplateUsed(response, 'lists/list.html')
+        self.assertEqual(Item.objects.count(), 1)
+
     def test_displays_item_form(self):
         list_ = List.objects.create()
         response = self.client.get(f'/lists/{list_.id}/')
-        self.assertIsInstance(response.context["form"], ItemForm)
+        self.assertIsInstance(response.context["form"], ExistingListItemForm)
         self.assertContains(response, 'name="text"')

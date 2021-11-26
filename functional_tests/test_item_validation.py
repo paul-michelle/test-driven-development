@@ -45,6 +45,6 @@ class ItemValidationTest(FunctionalTest):
         # There should be an error on the page
         self.wait_for(lambda: self.assertEqual(
             self.browser.find_element(By.CSS_SELECTOR, '.has-error').text,
-            "Already got this in your list"
+            "You've already got this in your list"
         ))
 
