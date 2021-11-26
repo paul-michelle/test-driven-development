@@ -1,9 +1,11 @@
+import django.db.utils
+import sqlite3
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from lists.models import Item, List
 
 
-class ListAndItemModelsTest(TestCase):
+class ItemModelTest(TestCase):
 
     def test_creating_and_retrieving_items(self):
         list_ = List()
@@ -32,6 +34,8 @@ class ListAndItemModelsTest(TestCase):
         self.assertEqual(first_saved_item.list, list_)
         self.assertEqual(second_saved_item.list, list_)
 
+        self.assertIn(first_saved_item, list_.items.all())
+
     def test_cannot_save_form_with_missing_text(self):
         list_ = List.objects.create()
         item = Item.objects.create(list=list_, text='')
@@ -39,6 +43,24 @@ class ListAndItemModelsTest(TestCase):
             item.save()
             item.full_clean()
 
+    def test_cannot_save_duplicate_items_to_same_list(self):
+        list_ = List.objects.create()
+        Item.objects.create(list=list_, text='Foo')
+        with self.assertRaises(sqlite3.IntegrityError and
+                               django.db.utils.IntegrityError):
+            item_2 = Item.objects.create(list=list_, text='Foo')
+            item_2.save()
+
+    @staticmethod
+    def test_can_save_those_duplicate_items_to_different_lists():
+        list_ = List.objects.create()
+        another_list_ = List.objects.create()
+        Item.objects.create(list=list_, text='Foo')
+        item_2 = Item.objects.create(list=another_list_, text='Foo')
+        item_2.full_clean()
+
+
+class ListModelTest(TestCase):
     def test_can_get_absolute_url(self):
         list_ = List.objects.create()
         url_from_model_method = list_.get_absolute_url()

@@ -101,13 +101,6 @@ class ListViewTest(TestCase):
         new_item = Item.objects.first()
         self.assertEqual(new_item.text, 'Adding a new item to a correct existing list')
         self.assertEqual(new_item.list, correct_list)
-        # trying to add an item to list two
-        # self.client.post(f'/lists/{another_list.id}/add_item',
-        #                  data={'text': 'Why not add an item to another list?'})
-        # self.assertEqual(Item.objects.count(), 2)
-        # new_item = Item.objects.get(pk=2)
-        # self.assertEqual(new_item.text, 'Why not add an item to another list?')
-        # self.assertEqual(new_item.list, another_list)
 
     def test_redirects_after_POST_to_list_view(self):
         correct_list = List.objects.create()
@@ -138,6 +131,5 @@ class ListViewTest(TestCase):
     def test_displays_item_form(self):
         list_ = List.objects.create()
         response = self.client.get(f'/lists/{list_.id}/')
-        pprint(response.context)
         self.assertIsInstance(response.context["form"], ItemForm)
         self.assertContains(response, 'name="text"')
